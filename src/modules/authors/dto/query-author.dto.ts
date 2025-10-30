@@ -9,4 +9,12 @@ export class QueryAuthorDto extends PaginationDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @IsOptional()
+  @IsString()
+  birthDate?: string;
 }

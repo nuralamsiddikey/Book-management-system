@@ -12,6 +12,7 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { QueryBookDto } from './dto/query-book.dto';
 import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 import { AuthorsService } from '../authors/authors.service';
+import { paginate } from 'src/common/paginate';
 
 @Injectable()
 export class BooksService {
@@ -22,7 +23,6 @@ export class BooksService {
   ) {}
 
   async create(createBookDto: CreateBookDto): Promise<BookDocument> {
-
     await this.authorsService.findOne(createBookDto.authorId);
 
     try {
@@ -32,8 +32,7 @@ export class BooksService {
       });
 
       const savedBook = await book.save();
-      return savedBook
-
+      return savedBook;
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException('Book with this ISBN already exists');
@@ -42,11 +41,11 @@ export class BooksService {
     }
   }
 
-  async findAll(queryDto: QueryBookDto): Promise<PaginatedResponse<BookDocument>> {
+  async findAll(
+    queryDto: QueryBookDto,
+  ): Promise<PaginatedResponse<BookDocument>> {
     const { page = 1, limit = 10, title, isbn, authorId } = queryDto;
-    const skip = (page - 1) * limit;
-
-    // Build filter
+    
     const filter: any = {};
     if (title) {
       filter.title = { $regex: title, $options: 'i' };
@@ -59,35 +58,18 @@ export class BooksService {
       filter.author = authorId;
     }
 
-    const [data, total] = await Promise.all([
-      this.bookModel
-        .find(filter)
-        .populate('author')
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec(),
-      this.bookModel.countDocuments(filter).exec(),
-    ]);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return paginate(this.bookModel, filter, {
+      page,
+      limit,
+      sort: { createdAt: -1 },
+      populate: 'author',
+    });
   }
 
   async findOne(id: string): Promise<BookDocument> {
     this.validateObjectId(id);
 
-    const book = await this.bookModel
-      .findById(id)
-      .populate('author')
-      .exec();
+    const book = await this.bookModel.findById(id).populate('author').exec();
 
     if (!book) {
       throw new NotFoundException(`Book with ID ${id} not found`);
@@ -96,7 +78,10 @@ export class BooksService {
     return book;
   }
 
-  async update(id: string, updateBookDto: UpdateBookDto): Promise<BookDocument> {
+  async update(
+    id: string,
+    updateBookDto: UpdateBookDto,
+  ): Promise<BookDocument> {
     this.validateObjectId(id);
 
     try {
