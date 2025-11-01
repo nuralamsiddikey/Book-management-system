@@ -26,36 +26,37 @@ export class BooksService {
   async create(createBookDto: CreateBookDto): Promise<BookDocument> {
     await this.authorsService.findOne(createBookDto.authorId);
 
-    try {
-      const book = new this.bookModel({
-        ...createBookDto,
-        author: createBookDto.authorId,
-      });
+    const exists = await this.bookModel.findOne({
+      $or: [{ title: createBookDto.title }, { isbn: createBookDto.isbn }],
+    });
 
-      const savedBook = await book.save();
-      return savedBook;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException('Book with this ISBN already exists');
-      }
-      throw error;
+    if (exists) {
+      throw new ConflictException(
+        'Book with this title or ISBN already exists',
+      );
     }
+
+    const book = new this.bookModel({
+      ...createBookDto,
+      author: createBookDto.authorId,
+    });
+    return book.save();
   }
 
   async findAll(
     queryDto: QueryBookDto,
   ): Promise<PaginatedResponse<BookDocument>> {
-    const { page = 1, limit = 10} = queryDto;
-    
+    const { page = 1, limit = 10 } = queryDto;
+
     const filter = buildFilterFromQuery(queryDto);
-    
+
     return paginate(this.bookModel, filter, {
       page,
       limit,
       sort: { createdAt: -1 },
       populate: 'author',
     });
-  } 
+  }
 
   async findOne(id: string): Promise<BookDocument> {
     this.validateObjectId(id);

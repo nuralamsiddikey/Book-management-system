@@ -22,25 +22,16 @@ export class AuthorsService {
   ) {}
 
   async create(createAuthorDto: CreateAuthorDto): Promise<AuthorDocument> {
-    try {
-      const author = new this.authorModel(createAuthorDto);
-      return await author.save();
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException(
-          'Author with this information already exists',
-        );
-      }
-      throw error;
-    }
+    const author = new this.authorModel(createAuthorDto);
+    return await author.save();
   }
 
   async findAll(
     queryDto: QueryAuthorDto,
   ): Promise<PaginatedResponse<AuthorDocument>> {
-    const { page = 1, limit = 10, firstName, lastName } = queryDto;
-    
-    const filter = buildFilterFromQuery(queryDto)
+    const { page = 1, limit = 10} = queryDto;
+
+    const filter = buildFilterFromQuery(queryDto);
 
     return paginate(this.authorModel, filter, {
       page,
