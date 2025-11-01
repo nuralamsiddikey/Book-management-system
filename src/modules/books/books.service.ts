@@ -55,7 +55,7 @@ export class BooksService {
       sort: { createdAt: -1 },
       populate: 'author',
     });
-  }
+  } 
 
   async findOne(id: string): Promise<BookDocument> {
     this.validateObjectId(id);

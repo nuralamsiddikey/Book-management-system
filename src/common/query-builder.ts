@@ -1,3 +1,12 @@
+function isDateLike(str: string): boolean {
+  const s = str.trim();
+  // Matches YYYY, YYYY-MM, YYYY-MM-DD
+  if (/^\d{4}(-\d{2}(-\d{2})?)?$/.test(s)) return true;
+  // Also accept any parseable date (ISO with time, etc.)
+  const parsed = Date.parse(s);
+  return !isNaN(parsed);
+}
+
 export function buildFilterFromQuery(
   query: Record<string, any>,
 ): Record<string, any> {
@@ -18,6 +27,10 @@ export function buildFilterFromQuery(
     }
     // Handle text fields
     else if (typeof value === 'string') {
+      if (isDateLike(value)) {
+        filter[key] = new Date(value);
+        continue;
+      }
       filter[key] = { $regex: value.trim(), $options: 'i' };
     }
     // Fallback
