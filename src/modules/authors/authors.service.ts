@@ -67,12 +67,13 @@ export class AuthorsService {
     return author;
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<AuthorDocument> {
     this.validateObjectId(id);
     const result = await this.authorModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Author with ID ${id} not found`);
     }
+    return result;
   }
 
   private validateObjectId(id: string): void {

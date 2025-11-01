@@ -40,7 +40,6 @@ export class AuthorsController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   delete(@Param('id') id: string) {
     return this.authorService.delete(id);
   }

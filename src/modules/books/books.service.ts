@@ -76,32 +76,27 @@ export class BooksService {
   ): Promise<BookDocument> {
     this.validateObjectId(id);
 
-    try {
-      const book = await this.bookModel
-        .findByIdAndUpdate(id, updateBookDto, { new: true })
-        .populate('author')
-        .exec();
+    const book = await this.bookModel
+      .findByIdAndUpdate(id, updateBookDto, { new: true })
+      .populate('author')
+      .exec();
 
-      if (!book) {
-        throw new NotFoundException(`Book with ID ${id} not found`);
-      }
-
-      return book;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException('Book with this ISBN already exists');
-      }
-      throw error;
+    if (!book) {
+      throw new NotFoundException(`Book with ID ${id} not found`);
     }
+
+    return book;
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<BookDocument> {
     this.validateObjectId(id);
 
     const result = await this.bookModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Book with ID ${id} not found`);
     }
+
+    return result;
   }
 
   private validateObjectId(id: string): void {

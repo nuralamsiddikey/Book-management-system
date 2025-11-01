@@ -14,12 +14,14 @@ import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { QueryBookDto } from './dto/query-book.dto';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Post()
+  @ResponseMessage('Book created successfully')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createBookDto: CreateBookDto) {
     return this.booksService.create(createBookDto);
@@ -41,8 +43,7 @@ export class BooksController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
-    await this.booksService.delete(id);
+    return this.booksService.delete(id);
   }
 }
