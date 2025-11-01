@@ -13,6 +13,7 @@ import { QueryBookDto } from './dto/query-book.dto';
 import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 import { AuthorsService } from '../authors/authors.service';
 import { paginate } from 'src/common/paginate';
+import { buildFilterFromQuery } from 'src/common/query-builder';
 
 @Injectable()
 export class BooksService {
@@ -44,20 +45,10 @@ export class BooksService {
   async findAll(
     queryDto: QueryBookDto,
   ): Promise<PaginatedResponse<BookDocument>> {
-    const { page = 1, limit = 10, title, isbn, authorId } = queryDto;
+    const { page = 1, limit = 10} = queryDto;
     
-    const filter: any = {};
-    if (title) {
-      filter.title = { $regex: title, $options: 'i' };
-    }
-    if (isbn) {
-      filter.isbn = { $regex: isbn, $options: 'i' };
-    }
-    if (authorId) {
-      this.validateObjectId(authorId);
-      filter.author = authorId;
-    }
-
+    const filter = buildFilterFromQuery(queryDto);
+    
     return paginate(this.bookModel, filter, {
       page,
       limit,

@@ -12,6 +12,7 @@ import { QueryAuthorDto } from './dto/query-author.dto';
 import { PaginatedResponse } from 'src/common/interfaces/paginated-response.interface';
 import { UpdateAuthorDto } from './dto/update-author.dto';
 import { paginate } from 'src/common/paginate';
+import { buildFilterFromQuery } from 'src/common/query-builder';
 
 @Injectable()
 export class AuthorsService {
@@ -39,13 +40,7 @@ export class AuthorsService {
   ): Promise<PaginatedResponse<AuthorDocument>> {
     const { page = 1, limit = 10, firstName, lastName } = queryDto;
     
-    const filter: any = {};
-    if (firstName) {
-      filter.firstName = { $regex: firstName, $options: 'i' };
-    }
-    if (lastName) {
-      filter.lastName = { $regex: lastName, $options: 'i' };
-    }
+    const filter = buildFilterFromQuery(queryDto)
 
     return paginate(this.authorModel, filter, {
       page,
