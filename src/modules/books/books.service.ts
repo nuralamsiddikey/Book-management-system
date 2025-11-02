@@ -76,6 +76,15 @@ export class BooksService {
   ): Promise<BookDocument> {
     this.validateObjectId(id);
 
+    if (updateBookDto.isbn) {
+      const isExist = await this.bookModel.findOne({
+        isbn: updateBookDto.isbn,
+      });
+      if (isExist) {
+        throw new ConflictException('Book with this ISBN already exists');
+      }
+    }
+
     const book = await this.bookModel
       .findByIdAndUpdate(id, updateBookDto, { new: true })
       .populate('author')
